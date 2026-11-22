@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: company-expense-bot
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: ADMIN_TELEGRAM_IDS
+        sync: false
+      - key: DATA_DIR
+        value: ./data
+
