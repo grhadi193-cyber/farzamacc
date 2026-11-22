@@ -1,0 +1,14 @@
+{
+  "name": "telegram-company-expenses",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "node render-server.js",
+    "deploy": "npx tgcloud push && npx tgcloud migrate"
+  },
+  "devDependencies": {
+    "@tgcloud/cli": "latest"
+  }
+}
+
