@@ -5,7 +5,8 @@ import path from 'node:path';
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const PORT = Number(process.env.PORT || 10000);
 const PUBLIC_URL = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL;
-const SECRET = process.env.WEBHOOK_SECRET || '';
+// Telegram only accepts A-Z, a-z, 0-9, _ and - in webhook secret tokens.
+const SECRET = (process.env.WEBHOOK_SECRET || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 256);
 const ADMIN_IDS = new Set((process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(x => x.trim()).filter(Boolean));
 const DATA = process.env.DATA_DIR || './data';
 const FILE = path.join(DATA, 'expenses.json');
