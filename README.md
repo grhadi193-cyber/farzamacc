@@ -101,10 +101,20 @@ Dockerfile و `docker-compose.yml` برای محیط توسعه و CI قرار �
 
 Render متغیر `RENDER_EXTERNAL_URL` را در اختیار سرویس می‌گذارد و برنامه هنگام startup، webhook تلگرام را خودکار تنظیم می‌کند. مسیر `/health` برای health check آماده است. نسخه‌ی Free دیسک پایدار ندارد؛ برای نگهداری دائمی داده‌ها از Supabase/Postgres استفاده کنید یا یک Persistent Disk در پلن پولی Render متصل کنید.
 
+### اتصال مستقیم Google Drive
+
+برای فعال‌کردن آرشیو فایل‌ها در Drive، یک Google Cloud Service Account بسازید، Google Drive API را فعال کنید، پوشه‌ی مقصد را با ایمیل Service Account به‌صورت Editor به اشتراک بگذارید و این دو Environment Variable را در Render تنظیم کنید:
+
+```text
+GOOGLE_DRIVE_FOLDER_ID=شناسه پوشه اصلی Drive
+GOOGLE_SERVICE_ACCOUNT_JSON=کل محتوای JSON حساب سرویس در یک خط
+```
+
+ربات برای هر هزینه یک پوشه با شناسه‌ی `EXP-...` می‌سازد و داخل آن `metadata.json`، `description.txt` و در صورت وجود `receipt.*` و `voice.*` قرار می‌دهد. اگر این دو متغیر تنظیم نباشند، ربات همچنان کار می‌کند و فقط آرشیو Drive را رد می‌کند.
+
 ## امنیت و محدودیت‌های تست
 
 - bot token و کلید OpenAI در کد نیستند و باید در Secret Manager قرار بگیرند.
 - فقط کاربران جدول `users` وارد جریان هزینه می‌شوند؛ گزارش فقط برای `role=admin` است.
 - محدودیت فایل واقعی Bot API: دانلود از تلگرام حداکثر ۲۰MB است؛ عکس‌ها و ویس‌های بزرگ باید رد یا کوچک شوند.
 - بدون دسترسی به BotFather، حساب Telegram Serverless، فضای ذخیره‌سازی و کلید OpenAI، deploy واقعی، OCR، transcription و آپلود ابری قابل‌تأیید نیست؛ تست‌های pure logic در `tests/` اجرا می‌شوند.
-
