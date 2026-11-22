@@ -103,14 +103,33 @@ Render متغیر `RENDER_EXTERNAL_URL` را در اختیار سرویس می�
 
 ### اتصال مستقیم Google Drive
 
-برای فعال‌کردن آرشیو فایل‌ها در Drive، یک Google Cloud Service Account بسازید، Google Drive API را فعال کنید و یک پوشه‌ی والد را با ایمیل Service Account به‌صورت Editor به اشتراک بگذارید. خود ربات داخل این پوشه، `company-expenses` و زیرپوشه‌های `incoming`، `processed`، `needs-review` و `reports` را می‌سازد.
+برای فعال‌کردن آرشیو فایل‌ها در Drive، از OAuth 2.0 حساب واقعی کاربر استفاده کنید. Google Drive API را فعال کنید و یک پوشه‌ی والد را در همان حساب کاربری نگه دارید. خود ربات داخل این پوشه، `company-expenses` و زیرپوشه‌های `incoming`، `processed`، `needs-review` و `reports` را می‌سازد.
 
 ```text
 GOOGLE_DRIVE_FOLDER_ID=شناسه پوشه والد Drive
-GOOGLE_SERVICE_ACCOUNT_JSON=کل محتوای JSON حساب سرویس در یک خط
+GOOGLE_OAUTH_CLIENT_JSON=کل محتوای client_secret.json
+GOOGLE_OAUTH_REFRESH_TOKEN=توکن refresh حساب کاربری
 ```
 
-ربات برای هر هزینه در `incoming` پوشه‌ای با قالب `1405-09-01_1830_ali-rezaei_123456789` می‌سازد و داخل آن فقط `metadata.json`، `description.txt` و در صورت وجود `receipt.jpg`، `voice.ogg` و `transcript.txt` قرار می‌دهد. اگر این دو متغیر تنظیم نباشند، ربات همچنان کار می‌کند و فقط آرشیو Drive را رد می‌کند.
+ربات برای هر هزینه در `incoming` پوشه‌ای با قالب `1405-09-01_1830_ali-rezaei_123456789` می‌سازد و داخل آن فقط `metadata.json`، `description.txt` و در صورت وجود `receipt.jpg`، `voice.ogg` و `transcript.txt` قرار می‌دهد. اگر این متغیرها تنظیم نباشند، ربات همچنان کار می‌کند و فقط آرشیو Drive را رد می‌کند.
+
+## راهنمای کامل OAuth 2.0 و Refresh Token
+
+1. در Google Cloud Console یک Project بسازید یا پروژه‌ی فعلی را انتخاب کنید.
+2. از مسیر `APIs & Services → Library`، سرویس **Google Drive API** را Enable کنید.
+3. از مسیر `APIs & Services → OAuth consent screen` نوع `External` را انتخاب کنید، نام برنامه و ایمیل پشتیبانی را وارد کنید، و حساب Google خودتان را در بخش **Test users** اضافه کنید. در Scopes، scope زیر را اضافه کنید:
+   `https://www.googleapis.com/auth/drive`
+4. از مسیر `APIs & Services → Credentials → Create Credentials → OAuth client ID`، نوع برنامه را **Desktop app** انتخاب کنید و Create بزنید.
+5. فایل دانلودشده را با نام `client_secret.json` نگه دارید؛ آن را در GitHub قرار ندهید.
+6. برای دریافت Refresh Token به [Google OAuth Playground](https://developers.google.com/oauthplayground) بروید. از آیکون تنظیمات، گزینه‌ی استفاده از OAuth credentials خودتان را فعال کنید و `client_id` و `client_secret` داخل `client_secret.json` را وارد کنید.
+7. scope زیر را وارد کنید و Authorize APIs بزنید:
+   `https://www.googleapis.com/auth/drive`
+8. حساب Google را انتخاب و Allow کنید، سپس `Exchange authorization code for tokens` را بزنید. مقدار `refresh_token` را کپی کنید.
+9. در Render این Environment Variableها را بسازید:
+   `GOOGLE_DRIVE_FOLDER_ID` = شناسه پوشه والد،
+   `GOOGLE_OAUTH_CLIENT_JSON` = کل محتوای `client_secret.json`،
+   `GOOGLE_OAUTH_REFRESH_TOKEN` = مقدار Refresh Token.
+10. Save Changes و سپس Manual Deploy را اجرا کنید. در لاگ باید `Drive OAuth access OK` دیده شود.
 
 ## امنیت و محدودیت‌های تست
 
