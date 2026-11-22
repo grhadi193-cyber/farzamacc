@@ -103,14 +103,14 @@ Render متغیر `RENDER_EXTERNAL_URL` را در اختیار سرویس می�
 
 ### اتصال مستقیم Google Drive
 
-برای فعال‌کردن آرشیو فایل‌ها در Drive، یک Google Cloud Service Account بسازید، Google Drive API را فعال کنید، پوشه‌ی مقصد را با ایمیل Service Account به‌صورت Editor به اشتراک بگذارید و این دو Environment Variable را در Render تنظیم کنید:
+برای فعال‌کردن آرشیو فایل‌ها در Drive، یک Google Cloud Service Account بسازید، Google Drive API را فعال کنید و یک پوشه‌ی والد را با ایمیل Service Account به‌صورت Editor به اشتراک بگذارید. خود ربات داخل این پوشه، `company-expenses` و زیرپوشه‌های `incoming`، `processed`، `needs-review` و `reports` را می‌سازد.
 
 ```text
-GOOGLE_DRIVE_FOLDER_ID=شناسه پوشه اصلی Drive
+GOOGLE_DRIVE_FOLDER_ID=شناسه پوشه والد Drive
 GOOGLE_SERVICE_ACCOUNT_JSON=کل محتوای JSON حساب سرویس در یک خط
 ```
 
-ربات برای هر هزینه یک پوشه با شناسه‌ی `EXP-...` می‌سازد و داخل آن `metadata.json`، `description.txt` و در صورت وجود `receipt.*` و `voice.*` قرار می‌دهد. اگر این دو متغیر تنظیم نباشند، ربات همچنان کار می‌کند و فقط آرشیو Drive را رد می‌کند.
+ربات برای هر هزینه در `incoming` پوشه‌ای با قالب `1405-09-01_1830_ali-rezaei_123456789` می‌سازد و داخل آن فقط `metadata.json`، `description.txt` و در صورت وجود `receipt.jpg`، `voice.ogg` و `transcript.txt` قرار می‌دهد. اگر این دو متغیر تنظیم نباشند، ربات همچنان کار می‌کند و فقط آرشیو Drive را رد می‌کند.
 
 ## امنیت و محدودیت‌های تست
 
