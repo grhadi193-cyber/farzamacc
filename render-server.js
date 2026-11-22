@@ -11,7 +11,7 @@ const SECRET = (process.env.WEBHOOK_SECRET || '').replace(/[^A-Za-z0-9_-]/g, '')
 const ADMIN_IDS = new Set((process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(x => x.trim()).filter(Boolean));
 const DATA = process.env.DATA_DIR || './data';
 const FILE = path.join(DATA, 'expenses.json');
-const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '';
+const DRIVE_FOLDER_ID = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').replace(/^\s*Value\s*:\s*/i, '').trim().replace(/^['\"]|['\"]$/g, '');
 let driveTokenCache = null;
 const digits = s => String(s || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 const fa = n => String(n).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
