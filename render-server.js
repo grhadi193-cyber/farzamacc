@@ -9,6 +9,7 @@ const PUBLIC_URL = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL;
 const SECRET = (process.env.WEBHOOK_SECRET || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 256);
 const ADMIN_IDS = new Set((process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(x => x.trim()).filter(Boolean));
 const AUTHORIZED_IDS = new Set((process.env.AUTHORIZED_TELEGRAM_IDS || '').split(',').map(x => x.trim()).filter(Boolean));
+let BOT_ID = Number(process.env.BOT_TELEGRAM_ID || 0);
 const DATA = process.env.DATA_DIR || './data';
 const FILE = path.join(DATA, 'expenses.json');
 const DRIVE_FOLDER_ID = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').replace(/^\s*Value\s*:\s*/i, '').trim().replace(/^['\"]|['\"]$/g, '');
@@ -45,7 +46,7 @@ function parse(text) { const n = digits(text); const m = n.match(/([0-9][0-9,،.
 async function handle(update) {
   const m = update.message; if (!m || !TOKEN) return;
   const id = String(m.from.id), chat = m.chat.id, text = m.text || m.caption || '';
-  if (m.new_chat_members?.some(member => member.is_bot && member.id === Number(process.env.BOT_TELEGRAM_ID || 0))) {
+  if (m.new_chat_members?.some(member => member.is_bot && member.id === BOT_ID)) {
     return tg('sendMessage', { chat_id: chat, text: `سلام به همه 👋\nمن ربات ثبت هزینه شرکت هستم.\n\nاز این به بعد هرکس هزینه‌ای انجام داد، همین‌جا یک پیام متنی یا عکس رسید همراه توضیح بفرستد.\n\nمثال:\nخرید لوازم اداری، مبلغ ۲۵۰۰۰۰ تومان، کارت شرکت\n\nهزینه با نام فرستنده ثبت می‌شود و فایل رسید در Google Drive قرار می‌گیرد.\nبرای راهنما بنویسید: راهنما` });
   }
   if (m.voice || m.audio) {
@@ -61,5 +62,5 @@ async function handle(update) {
   return tg('sendMessage', { chat_id: chat, text: `✅ هزینه دریافت شد\n\n👤 ثبت‌کننده: ${displayName}\n🧾 شناسه: ${item.id}\n💰 مبلغ: ${item.amount ? fa(item.amount) : 'نامشخص'} ${item.currency === 'TOMAN' ? 'تومان' : item.currency === 'IRR' ? 'ریال' : ''}\n💳 روش پرداخت: ${item.payment || 'نامشخص'}\n📌 وضعیت: ${item.status === 'PENDING_REVIEW' ? 'در انتظار بررسی' : 'نیازمند تکمیل'}${hasPhoto ? '\n🖼 رسید تصویری دریافت شد' : ''}${!text ? '\n\nبرای تکمیل، توضیح و مبلغ را هم ارسال کنید.' : ''}` });
 }
 const server = http.createServer(async (req, res) => { if (req.url === '/health') { res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify({ ok: true })); } if (req.method !== 'POST' || !req.url.startsWith('/telegram/webhook')) { res.writeHead(404); return res.end('Not found'); } if (SECRET && req.headers['x-telegram-bot-api-secret-token'] !== SECRET) { res.writeHead(401); return res.end('Unauthorized'); } let body=''; for await (const chunk of req) body += chunk; try { await handle(JSON.parse(body)); res.writeHead(200); res.end('ok'); } catch (e) { console.error(e); res.writeHead(500); res.end('error'); } });
-async function configureWebhook() { if (!TOKEN || !PUBLIC_URL) return; const body = { url: `${PUBLIC_URL.replace(/\/$/, '')}/telegram/webhook`, allowed_updates: ['message'] }; if (SECRET) body.secret_token = SECRET; for (let attempt = 1; attempt <= 5; attempt++) { try { await tg('setWebhook', body); console.log('Webhook configured'); return; } catch (e) { console.error(`Webhook setup attempt ${attempt}/5 failed:`, e.message); if (attempt < 5) await new Promise(r => setTimeout(r, attempt * 5000)); } } }
+async function configureWebhook() { if (!TOKEN || !PUBLIC_URL) return; try { if (!BOT_ID) { const me = await tg('getMe', {}); BOT_ID = me.result.id; console.log(`Telegram bot identified: ${BOT_ID}`); } } catch (e) { console.error('Telegram bot identity lookup failed:', e.message); } const body = { url: `${PUBLIC_URL.replace(/\/$/, '')}/telegram/webhook`, allowed_updates: ['message'] }; if (SECRET) body.secret_token = SECRET; for (let attempt = 1; attempt <= 5; attempt++) { try { await tg('setWebhook', body); console.log('Webhook configured'); return; } catch (e) { console.error(`Webhook setup attempt ${attempt}/5 failed:`, e.message); if (attempt < 5) await new Promise(r => setTimeout(r, attempt * 5000)); } } }
 server.listen(PORT, () => { console.log(`Expense bot listening on ${PORT}`); setTimeout(() => { configureWebhook(); checkDriveAccess(); }, 5000); });
