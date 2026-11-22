@@ -23,7 +23,7 @@ async function driveAccessToken() {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) return null;
   if (driveTokenCache && driveTokenCache.exp > Date.now() + 60000) return driveTokenCache.value;
   const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON); const now = Math.floor(Date.now()/1000);
-  const head = b64url(JSON.stringify({ alg:'RS256', typ:'JWT' })); const claim = b64url(JSON.stringify({ iss: sa.client_email, scope:'https://www.googleapis.com/auth/drive.file', aud:'https://oauth2.googleapis.com/token', iat:now, exp:now+3600 }));
+  const head = b64url(JSON.stringify({ alg:'RS256', typ:'JWT' })); const claim = b64url(JSON.stringify({ iss: sa.client_email, scope:'https://www.googleapis.com/auth/drive', aud:'https://oauth2.googleapis.com/token', iat:now, exp:now+3600 }));
   const sign = crypto.createSign('RSA-SHA256'); sign.update(`${head}.${claim}`); const jwt = `${head}.${claim}.${b64url(sign.sign(sa.private_key))}`;
   const r = await fetch('https://oauth2.googleapis.com/token', { method:'POST', headers:{'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({ grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion:jwt }) }); const j = await r.json(); if (!r.ok) throw new Error(`Google auth failed: ${j.error_description || r.status}`); driveTokenCache = { value:j.access_token, exp:Date.now()+3500000 }; return j.access_token;
 }
